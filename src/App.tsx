@@ -1,93 +1,57 @@
 import { useState } from "react";
 import {calculateWinner} from "../src/library/calculateWinner"
 
-type SquareType = {
-	value:number|string
-}
+
+//色ん関数の書き方はこちらも参考に。
 
 
-// パターン1_A アロー関数、型定義をジェネリックで行う方法。typeを利用。-------------
-// 凡庸的な型を定義する方法。React.FCは関数コンポーネントを定義する型で、React.FC<T>という形で使用する。
-// const Square:React.FC<SquareType> = (props) =>{
-// 	function handleClick() {
-// 		console.log('clicked!');
-// 	}
+/*スクエア--------------------*/
 
-// 	return <button onClick={handleClick} className="square">{props.value}</button>
-// }
-
-// パターン２_A アロー関数で、型定義をジェネリックを使わずにtypeのみ行う--------------
-// const Square = (props:SquareType) =>{
-// 	return <button className="square">{props.value}</button>
-// }
-
-// パターン２_B 通常の関数で、型定義をジェネリックを使わずにtypeのみ行う--------------
-// function Square(props:SquareType){
-// 	return <button className="square">{props.value}</button>
-// }
-
-//パターン３_A アロー関数で、型定義を直に書く---------------
-// const Square =({value}:{value:number}) =>{
-// 	return <button className="square">{value}</button>
-// }
-
-// パターン3_B 通常の関数で、型定義を直に書く---------------
-// function Square({value}:{value:number}){
-// 	return <button className="square">{value}</button>
-// }
-
-// function Square({value}:{value:number}) {
-// 	return <button className="square">{value}</button>;
-// }
-
-// function  Square({value}:{value:number}):JSX.Element{
-// 	return <button className="square">{value}</button>
-// }
-
-type SquareProps ={
+type SquareProps = {
 	value:number;
-	onSquareClick?:()=> void
-
+	onSquareClick:()=> void//boardからは無名関数が渡っている。ちなみに、boardで　handleClick(0)　とかいたら、その実行の結果がプロパティで渡ってくるので注意。
 }
-function Square(props:SquareProps){
+function Square(props:SquareProps):JSX.Element{
 	return <button className="square" onClick={props.onSquareClick}>{props.value}</button>
 }
 
 
+/*ボード--------------------*/
+type BoardProps = {
+	xIsNext:boolean;
+	squares:any;
+	onplay:Function//gameからは名前付き関数が渡っている。
+}
 
 
-
-function Board():JSX.Element {
+function Board(props:BoardProps):JSX.Element {
 	const [squares,setSquares] = useState(Array(9).fill(''))
-	const [xIsNext,setNext] = useState(true);
-	const [gameStatus,setgameStatus] = useState('ゲームを始めます');	
+	// const [gameStatus,setgameStatus] = useState('ゲームを始めます');	
+	let gameStatus;
 
 
+
+	// borad定義の関数
 	function handleClick(i:number){
 		//同じ箇所をクリックししてる、またはすでに終了していたら終了
 		if(squares[i] || calculateWinner(squares)) return
-
-		
 		const nextSquares = squares.slice();
 		
 		//次の番手をセット
-		nextSquares[i] = xIsNext ? 'X' : '○';
+		nextSquares[i] = props.xIsNext ? 'X' : '○';
+		props.onplay(nextSquares);
 
 		//盤石に新しい情報をセット
 		setSquares(nextSquares)
 
 		//勝者判定
-		const winner = calculateWinner(nextSquares);
-		
-		//次のプレイヤー（trueかかfalseか）を定義
-		setNext(!xIsNext)	
-		
+		const winner = calculateWinner(nextSquares);	
+		//メッセージセット
 		if(winner){
-			setgameStatus("Winner: " + winner);
+			gameStatus = "Winner: " + winner;
 		}else{
-			setgameStatus("Next player: " + (xIsNext ? 'X' : '○'));
+			gameStatus = "Next player: " + (props.xIsNext ? 'X' : '○');
 		}
-
 	}
 
 	return (
@@ -95,28 +59,23 @@ function Board():JSX.Element {
 		    <div className="status">{gameStatus}</div>
 			<div className="board-row">
 				{/* propsは文字列の場合は{}で包まなくてもいい} */}
-
-
-				{/* これだと返り値が入ってしまうので、エラーになる。 */}
 				{/* <Square value={squares[0]} onClick={handleClick(0)}/> */}
-
+				{/* ↑これだと関数の返り値がプロパティに入ってしまう */}
 				<Square value={squares[0]} onSquareClick={() => handleClick(0)}/>
 				<Square value={squares[1]} onSquareClick={() => handleClick(1)}/>
 				<Square value={squares[2]} onSquareClick={() => handleClick(2)}/>
-
-
 			</div>
+
 			<div className="board-row">
 				<Square value={squares[3]} onSquareClick={() => handleClick(3)}/>
 				<Square value={squares[4]} onSquareClick={() => handleClick(4)}/>
 				<Square value={squares[5]} onSquareClick={() => handleClick(5)}/>
-
 			</div>
+
 			<div className="board-row">
 				<Square value={squares[6]} onSquareClick={() => handleClick(6)}/>
 				<Square value={squares[7]} onSquareClick={() => handleClick(7)}/>
 				<Square value={squares[8]} onSquareClick={() => handleClick(8)}/>
-
 			</div>
       
 		</>
@@ -127,12 +86,28 @@ function Board():JSX.Element {
 //これをデフォルトのコンポーネントとしてエクスポートする。
 // board、gameコンポーネントにはexport defaultの記述がないのはそういうこと。
 export default function Game(){
+	const [xIsNext,setNext] = useState(true);
+
+
+	const [history,setHistory] = useState([Array(9).fill('')])
+	const curretSquares = history[history.length - 1];
+
+	function onplay(nextSquares:[number]){
+		console.log('handlePlay')
+		console.log(xIsNext)
+		setHistory([...history,nextSquares])
+		setNext(!xIsNext)	
+
+	}
 
 	return (
 		<div className="game">
 			<div className="game-board">
-				<Board/>
+				{/* board→squareと違い、名前付きの関数 (onplay)を返す */}
+				<Board xIsNext={xIsNext} squares={curretSquares} onplay={onplay} />
 			</div>
 		</div>
 	)
 }
+
+
