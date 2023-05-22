@@ -16,6 +16,8 @@ function Square(props:SquareProps):JSX.Element{
 }
 
 
+
+
 /*ボード--------------------*/
 type BoardProps = {
 	xIsNext:boolean;
@@ -23,12 +25,11 @@ type BoardProps = {
 	onplay:Function//gameからは名前付き関数が渡っている。
 }
 
-
 function Board(props:BoardProps):JSX.Element {
-	const [squares,setSquares] = useState(Array(9).fill(''))
+	const squares = props.squares
+	// const [squares,setSquares] = useState(Array(9).fill(''))
 	// const [gameStatus,setgameStatus] = useState('ゲームを始めます');	
 	let gameStatus;
-
 
 
 	// borad定義の関数
@@ -37,12 +38,12 @@ function Board(props:BoardProps):JSX.Element {
 		if(squares[i] || calculateWinner(squares)) return
 		const nextSquares = squares.slice();
 		
-		//次の番手をセット
+		//アクションをセット
 		nextSquares[i] = props.xIsNext ? 'X' : '○';
 		props.onplay(nextSquares);
 
 		//盤石に新しい情報をセット
-		setSquares(nextSquares)
+		// setSquares(nextSquares)
 
 		//勝者判定
 		const winner = calculateWinner(nextSquares);	
@@ -77,34 +78,56 @@ function Board(props:BoardProps):JSX.Element {
 				<Square value={squares[7]} onSquareClick={() => handleClick(7)}/>
 				<Square value={squares[8]} onSquareClick={() => handleClick(8)}/>
 			</div>
-      
 		</>
 	)
 }
+
 
 
 //これをデフォルトのコンポーネントとしてエクスポートする。
 // board、gameコンポーネントにはexport defaultの記述がないのはそういうこと。
 export default function Game(){
 	const [xIsNext,setNext] = useState(true);
-
-
 	const [history,setHistory] = useState([Array(9).fill('')])
-	const curretSquares = history[history.length - 1];
+	const [currentMove,setCurrentMove] = useState(0)
+	const curretSquares = history[currentMove];
 
-	function onplay(nextSquares:[number]){
+	function handlePlay(nextSquares:[number]){
+		const nextHistory = [...history.slice(0,currentMove + 1),nextSquares];
 		console.log('handlePlay')
-		console.log(xIsNext)
-		setHistory([...history,nextSquares])
-		setNext(!xIsNext)	
-
+		setHistory(nextHistory)
+		setCurrentMove(nextHistory.length - 1);
+		setNext(!xIsNext)
 	}
+
+	function jumpTo(NextMove:number) {
+		console.log('aaa')
+		setCurrentMove(NextMove)
+		setNext(NextMove % 2 === 0)//偶数ならtrue(Xが次)
+	}
+
+	const moves = history.map((history_squares,move)=>{
+		let description;
+		if(move > 0){
+			description = "Go to move #" + move
+		}else{
+			description = "Go to game start"
+		}
+		return(
+			<li key={move}>
+				<button onClick={()=>jumpTo(move)}>{description}</button>
+			</li>
+		)
+	})
 
 	return (
 		<div className="game">
 			<div className="game-board">
 				{/* board→squareと違い、名前付きの関数 (onplay)を返す */}
-				<Board xIsNext={xIsNext} squares={curretSquares} onplay={onplay} />
+				<Board xIsNext={xIsNext} squares={curretSquares} onplay={handlePlay} />
+			</div>
+			<div className="game-info">
+				<ol>{moves}</ol>
 			</div>
 		</div>
 	)
