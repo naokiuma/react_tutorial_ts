@@ -1,4 +1,4 @@
-export function calculateWinner(squares:Array<number>):null|number {
+export function calculateWinner(squares:Array<number|string>):null|number|string {
 //こういう書き方もできる
 // export function calculateWinner(squares:number[]) {
 	const lines = [

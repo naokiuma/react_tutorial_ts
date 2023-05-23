@@ -2,14 +2,15 @@ import { useState } from "react";
 import {calculateWinner} from "../src/library/calculateWinner"
 
 
-//色ん関数の書き方はこちらも参考に。
+//色んな関数の書き方はこちらも参考に。
 
 
 /*スクエア--------------------*/
 
 type SquareProps = {
-	value:number;
-	onSquareClick:()=> void//boardからは無名関数が渡っている。ちなみに、boardで　handleClick(0)　とかいたら、その実行の結果がプロパティで渡ってくるので注意。
+	value:number|string;
+	//boardからは無名関数が渡っている。ちなみに、boardでprops渡すときにhandleClick(0)　とかいたら、その実行の結果がプロパティで渡ってくるので注意。
+	onSquareClick:()=> void
 }
 function Square(props:SquareProps):JSX.Element{
 	return <button className="square" onClick={props.onSquareClick}>{props.value}</button>
@@ -21,23 +22,22 @@ function Square(props:SquareProps):JSX.Element{
 /*ボード--------------------*/
 type BoardProps = {
 	xIsNext:boolean;
-	squares:any;
-	onplay:Function//gameからは名前付き関数が渡っている。
+	squares:(string | number)[];
+	onplay:Function//gameから名前付き関数が渡っている。
 }
 
 function Board(props:BoardProps):JSX.Element {
 	const squares = props.squares
-	// const [squares,setSquares] = useState(Array(9).fill(''))
-	// const [gameStatus,setgameStatus] = useState('ゲームを始めます');	
 	let gameStatus;
 
 
 	// borad定義の関数
 	function handleClick(i:number){
-		//同じ箇所をクリックししてる、またはすでに終了していたら終了
+
+		//同じ箇所をクリックししてる、またはすでにwinnerが決まっていたら終了
 		if(squares[i] || calculateWinner(squares)) return
+
 		const nextSquares = squares.slice();
-		
 		//アクションをセット
 		nextSquares[i] = props.xIsNext ? 'X' : '○';
 		props.onplay(nextSquares);
@@ -88,20 +88,23 @@ function Board(props:BoardProps):JSX.Element {
 // board、gameコンポーネントにはexport defaultの記述がないのはそういうこと。
 export default function Game(){
 	const [xIsNext,setNext] = useState(true);
+
+	//ゲームの初期化
 	const [history,setHistory] = useState([Array(9).fill('')])
+
+
 	const [currentMove,setCurrentMove] = useState(0)
 	const curretSquares = history[currentMove];
 
+	/**/
 	function handlePlay(nextSquares:[number]){
 		const nextHistory = [...history.slice(0,currentMove + 1),nextSquares];
-		console.log('handlePlay')
 		setHistory(nextHistory)
 		setCurrentMove(nextHistory.length - 1);
 		setNext(!xIsNext)
 	}
 
 	function jumpTo(NextMove:number) {
-		console.log('aaa')
 		setCurrentMove(NextMove)
 		setNext(NextMove % 2 === 0)//偶数ならtrue(Xが次)
 	}
