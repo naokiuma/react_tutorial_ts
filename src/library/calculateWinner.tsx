@@ -1,4 +1,6 @@
-export function calculateWinner(squares:Array<number|string>):null|number|string {
+
+import {Move} from "../types/move"
+export function calculateWinner(squares:Array<Move>):Array<Move> {
 //こういう書き方もできる
 // export function calculateWinner(squares:number[]) {
 	const lines = [
@@ -18,5 +20,6 @@ export function calculateWinner(squares:Array<number|string>):null|number|string
 		return squares[a];
 	  }
 	}
-	return null;
+	return squares;
+	// return <K typeof Move>;
   }
