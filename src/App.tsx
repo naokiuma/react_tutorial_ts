@@ -1,11 +1,13 @@
 import { useState } from "react";
 import {calculateWinner} from "../src/library/calculateWinner"
+import {Move} from "../src/types/move";
 
+
+// type Move = '○' | '×' | '';
 
 /*スクエア--------------------*/
-
 type SquareProps = {
-	value:string;
+	value:Move;
 	//boardからは無名関数が渡っている。ちなみに、boardでprops渡すときにhandleClick(0)　とかいたら、
 	//その実行の結果がプロパティで渡ってくるので注意。
 	onSquareClick:()=> void
@@ -18,7 +20,7 @@ function Square(props:SquareProps):JSX.Element{
 /*ボード--------------------*/
 type BoardProps = {
 	xIsNext:boolean;
-	squares:string[];
+	squares:Move[];
 	onplay:Function;
 }
 
@@ -30,9 +32,9 @@ function Board(props:BoardProps):JSX.Element {
 		//同じ箇所をクリックししてる、またはすでにwinnerが決まっていたら終了
 		if(squares[i] || calculateWinner(squares)) return
 		//次の手順をセット
-		const nextSquares = squares.slice();
+		const nextSquares:Move[] = squares.slice();
 		//次の手順を確認し
-		nextSquares[i] = props.xIsNext ? 'X' : '○';
+		nextSquares[i] = props.xIsNext ? '×' : '○';
 		props.onplay(nextSquares);
 	}
 
@@ -44,7 +46,7 @@ function Board(props:BoardProps):JSX.Element {
 	if(winner){
 		gameStatus = "Winner: " + winner;
 	}else{
-		gameStatus = "Next player: " + (props.xIsNext ? 'X' : '○');
+		gameStatus = "Next player: " + (props.xIsNext ? '×' : '○');
 	}
 
 	return (
@@ -133,5 +135,16 @@ export default function Game():JSX.Element{
 		</div>
 	)
 }
+
+
+const currencies = ["CNY", "EUR", "GBP", "JPY", "KRW", "USD"] as const;
+ 
+
+type Currency = typeof currencies
+type Currency2 = typeof currencies[number]
+type Currency3 = typeof currencies[2]
+
+
+
 
 
